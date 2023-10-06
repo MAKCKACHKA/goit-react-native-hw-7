@@ -1,0 +1,9 @@
+li {
+  justify-content: flex-end;
+  /* alignItems: "center",
+    // backgroundColor: "rgb(249, 249, 249)",
+    width: "375px",
+    // height: "549px",
+    // flexShrink: "0", */
+  text-decoration: line-through;
+}
