@@ -2,6 +2,7 @@
   "expo": {
     "name": "myProject",
     "slug": "myProject",
+    "privacy": "public",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -11,9 +12,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true
     },
@@ -21,10 +20,29 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
+      },
+      "package": "com.maksymdouble.myProject",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyAV9iAsF85B9wU683vE2xpG5nZqei6b_qw"
+        }
       }
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "721e8178-b6a6-4325-af7a-5a28df3f0e35"
+      }
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(myProject) to access your camera."
+        }
+      ]
+    ]
   }
 }

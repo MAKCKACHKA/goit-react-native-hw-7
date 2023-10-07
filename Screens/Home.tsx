@@ -103,6 +103,7 @@ const Home = ({ navigation }) => {
               <SvgXml xml={arrowLeft} style={styles.svg} />
             </TouchableOpacity>
           ),
+          tabBarStyle: { display: "none" },
         }}
       />
       <Tabs.Screen

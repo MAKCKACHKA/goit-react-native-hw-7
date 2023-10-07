@@ -29,7 +29,11 @@ import * as MediaLibrary from "expo-media-library";
 import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
 
+import { PROVIDER_GOOGLE } from "react-native-maps";
+
 const MapScreen = ({ route, navigation }) => {
+  Location.setGoogleApiKey("AIzaSyAV9iAsF85B9wU683vE2xpG5nZqei6b_qw");
+
   function degreesToRadians(angle) {
     return angle * (Math.PI / 180);
   }
@@ -47,6 +51,7 @@ const MapScreen = ({ route, navigation }) => {
 
       {userLocation && (
         <MapView
+          provider={PROVIDER_GOOGLE}
           style={styles.imageholder}
           //   showsUserLocation={true}
           //   followsUserLocation={true}
@@ -56,9 +61,6 @@ const MapScreen = ({ route, navigation }) => {
             latitudeDelta: 0.00001,
             longitude: userLocation.coords.longitude,
             longitudeDelta: kMToLongitudes(1.0, userLocation.coords.latitude),
-
-            // longitudeDelta: userLocation.coords.latitude,
-            // latitudeDelta: userLocation.coords.longitude,
           }}
         >
           <Marker
@@ -69,7 +71,6 @@ const MapScreen = ({ route, navigation }) => {
             }}
             description="location"
           />
-          {/* // (markers, geojson etc go here) */}
         </MapView>
       )}
     </View>
@@ -131,12 +132,8 @@ const styles = StyleSheet.create({
   toolbar: {
     flexDirection: "row",
     justifyContent: "center",
-    // gap: 39,
     alignItems: "center",
     paddingTop: 100,
-    // paddingBottom: 34,
-    // borderTopColor: "black",
-    // borderTopWidth: 1,
   },
 });
 

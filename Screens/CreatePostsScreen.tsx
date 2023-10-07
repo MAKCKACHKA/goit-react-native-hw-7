@@ -32,6 +32,7 @@ import * as Location from "expo-location";
 import { createPost, getPosts, getUserPosts } from "../config";
 import { useDispatch, useSelector } from "react-redux";
 import { changePosts, changeUserPosts } from "../redux/authSlice";
+import { useFocusEffect } from "@react-navigation/native";
 
 const CreatePostsScreen = ({ navigation }) => {
   const [name, setName] = useState("");
@@ -43,62 +44,10 @@ const CreatePostsScreen = ({ navigation }) => {
 
   const [userLocation, setUserLocation] = useState(null);
 
-  // useEffect(() => {
-  //   (async () => {
-  //     let { status } = await Location.requestForegroundPermissionsAsync();
-  //     if (status !== "granted") {
-  //       alert("Доступ до геолокації відхилено.");
-  //       return;
-  //     }
-  //     let location = await Location.getCurrentPositionAsync({});
-  //     setUserLocation(location);
-  //   })();
-  // }, []);
-
-  const getCurrentLocation = async () => {
-    let { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== "granted") {
-      alert("Доступ до геолокації відхилено.");
-      return;
-    }
-    let location = await Location.getCurrentPositionAsync({});
-    setUserLocation(location);
-  };
-
-  const [hasPermission, setHasPermission] = useState(null);
-  const [cameraRef, setCameraRef] = useState(null);
-
-  useEffect(() => {
-    (async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      await MediaLibrary.requestPermissionsAsync();
-      setHasPermission(status === "granted");
-    })();
-    if (hasPermission === false) {
-      alert("No access to camera");
-    }
-  }, [Camera.requestCameraPermissionsAsync()]);
-
-  const handleTakePicture = async () => {
-    if (cameraRef) {
-      const { uri } = await cameraRef.takePictureAsync();
-      await MediaLibrary.createAssetAsync(uri);
-      setImage(uri);
-    }
-  };
-
-  // useEffect(() => {
-  //   navigation.setOptions({
-  //     // headerShown: false,
-  //     // title: "sadasd",
-  //   });
-  // }, []);
+  Location.setGoogleApiKey("AIzaSyAV9iAsF85B9wU683vE2xpG5nZqei6b_qw");
 
   const { uid, nickName } = useSelector((state: any) => state.auth);
   const dispatch = useDispatch();
-
-  // const [userPosts, setUserPosts] = useState(null);
-  // const [posts, setPosts] = useState([]);
   const setPosts = (value) => dispatch(changePosts(value));
   const setUserPosts = (value) => dispatch(changeUserPosts(value));
 
@@ -107,17 +56,61 @@ const CreatePostsScreen = ({ navigation }) => {
     getUserPosts(setUserPosts, uid);
   };
 
-  useEffect(() => {
-    usePosts();
-    // getCurrentLocation();
-  }, []);
+  const getCurrentLocation = async () => {
+    let { status } = await Location.requestForegroundPermissionsAsync();
+    if (status === "granted") {
+      let location = await Location.getCurrentPositionAsync({});
+      setUserLocation(location);
+      // console.log(location);
+    } else {
+      alert("Доступ до геолокації відхилено.");
+    }
+    // console.log(userLocation);
+  };
 
   useEffect(() => {
     getCurrentLocation();
-  }, [location]);
+  }, []);
+
+  const [hasPermission, setHasPermission] = useState(null);
+  const [cameraRef, setCameraRef] = useState(null);
+
+  const [permission, requestPermission] = Camera.useCameraPermissions();
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      await MediaLibrary.requestPermissionsAsync();
+      setHasPermission(status === "granted");
+    })();
+  }, []);
+
+  const handleTakePicture = async () => {
+    const { uri } = await cameraRef.takePictureAsync();
+    await MediaLibrary.createAssetAsync(uri);
+    setImage(uri);
+    if (!cameraRef) {
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      await MediaLibrary.requestPermissionsAsync();
+      if (status !== "granted") {
+        alert("Немає доступу до камери");
+        return;
+      }
+    }
+  };
+
+  const [isOnCreatePostsScreen, setIsOnCreatePostsScreen] = useState(true);
+  const cameraToogle = () => {
+    if (isOnCreatePostsScreen && image === "") {
+      setIsOnCreatePostsScreen(false);
+    }
+    setTimeout(() => {
+      setIsOnCreatePostsScreen(true);
+    }, 100);
+  };
 
   const handlePublish = async () => {
-    // getCurrentLocation();
+    getCurrentLocation();
 
     setTimeout(() => {
       createPost({
@@ -131,7 +124,7 @@ const CreatePostsScreen = ({ navigation }) => {
         image: image,
         likes: 0,
       });
-    }, 20);
+    }, 100);
 
     setTimeout(() => {
       usePosts();
@@ -153,17 +146,28 @@ const CreatePostsScreen = ({ navigation }) => {
             <View style={styles.imageholder}>
               {image ? (
                 <Image style={styles.publicationImg} source={{ uri: image }} />
-              ) : (
+              ) : isOnCreatePostsScreen ? (
                 <Camera
                   style={styles.publicationImg}
-                  // type={Camera.Constants.Type.back}
-                  ref={setCameraRef}
+                  ref={(ref) => setCameraRef(ref)}
+                />
+              ) : (
+                <View
+                  style={[styles.publicationImg, { backgroundColor: "black" }]}
+                  ref={(ref) => setCameraRef(ref)}
                 />
               )}
               {!image && (
                 <Pressable
                   style={styles.cameraHolder}
-                  onPress={handleTakePicture}
+                  onPress={() => {
+                    if (isOnCreatePostsScreen) {
+                      handleTakePicture();
+                    }
+                    setTimeout(() => {
+                      cameraToogle();
+                    }, 2400);
+                  }}
                 >
                   <SvgXml xml={cameraBlack} style={[styles.svg]} />
                 </Pressable>
@@ -180,10 +184,7 @@ const CreatePostsScreen = ({ navigation }) => {
             >
               <TextInput
                 value={name}
-                style={[
-                  styles.input,
-                  nameFocused === true && styles.focusedInput,
-                ]}
+                style={[styles.input, nameFocused && styles.focusedInput]}
                 placeholder="Назва..."
                 onChangeText={setName}
                 onFocus={() => setNameFocused(true)}
@@ -192,11 +193,10 @@ const CreatePostsScreen = ({ navigation }) => {
               <View
                 style={[
                   styles.locationContainer,
-                  locationFocused === true && styles.focusedInput,
+                  locationFocused && styles.focusedInput,
                 ]}
               >
                 <SvgXml xml={mapPin} style={styles.svg} />
-
                 <TextInput
                   value={location}
                   style={styles.locationInput}
@@ -215,7 +215,10 @@ const CreatePostsScreen = ({ navigation }) => {
                     name !== "" &&
                     styles.publishBtnActive,
                 ]}
-                onPress={handlePublish}
+                onPress={() => {
+                  handlePublish();
+                  setIsOnCreatePostsScreen(true);
+                }}
                 disabled={!image || !name || !location}
               >
                 <Text
@@ -238,6 +241,7 @@ const CreatePostsScreen = ({ navigation }) => {
                     setName("");
                     setImage("");
                     setLocation("");
+                    setIsOnCreatePostsScreen(true);
                   }}
                 >
                   <SvgXml xml={trash} style={styles.svg} />

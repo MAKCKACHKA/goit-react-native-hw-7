@@ -90,7 +90,10 @@ const CommentsScreen = ({ route, navigation }) => {
       // title: "sadasd",
       headerLeft: () => (
         <TouchableOpacity
-          onPress={() => navigation.navigate("Home")}
+          onPress={() => {
+            navigation.navigate("Home");
+            usePosts();
+          }}
           style={{ left: 20 }}
         >
           <SvgXml xml={arrowLeft} style={styles.svg} />
